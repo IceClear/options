@@ -15,7 +15,7 @@ from matplotlib import cm
 np.set_printoptions(threshold=np.inf)
 
 class GridWorld:
-	
+
 	strMDP  = ''
 	numRows = -1
 	numCols = -1
@@ -45,7 +45,7 @@ class GridWorld:
 		elif strin != None:
 			self.strMDP = strin
 		else:
-			print 'You are supposed to provide an MDP specification as input!'
+			print('You are supposed to provide an MDP specification as input!')
 			sys.exit()
 
 		self._parseString()
@@ -69,8 +69,8 @@ class GridWorld:
 		self.numCols = int(data[0].split(',')[1])
 		self.matrixMDP = np.zeros((self.numRows, self.numCols))
 
-		for i in xrange(len(data) - 1):
-			for j in xrange(len(data[i+1])):
+		for i in range(len(data) - 1):
+			for j in range(len(data[i+1])):
 				if data[i+1][j] == 'X':
 					self.matrixMDP[i][j] = -1
 				elif data[i+1][j] == '.':
@@ -109,7 +109,7 @@ class GridWorld:
 		if action == 'terminate':
 			# In this case we are not discovering options
 			# we are just talking about a general MDP.
-			if self.rewardFunction == None:
+			if self.rewardFunction is None:
 				if nextX == self.goalX and nextY == self.goalY:
 					return -1, -1 # absorbing state
 				else:
@@ -119,7 +119,7 @@ class GridWorld:
 			else:
 				return -1, -1 # absorbing state
 
-		if self.matrixMDP[self.currX][self.currY] != -1:
+		if self.matrixMDP[int(self.currX)][int(self.currY)] != -1:
 			if action == 'up' and self.currX > 0:
 				nextX = self.currX - 1
 				nextY = self.currY
@@ -134,16 +134,16 @@ class GridWorld:
 				nextY = self.currY - 1
 
 		if nextX < 0 or nextY < 0:
-			print 'You were supposed to have hit a wall before!' 
-			print 'There is something wrong with your MDP definition.'
+			print('You were supposed to have hit a wall before!')
+			print('There is something wrong with your MDP definition.')
 			sys.exit()
 
 		if nextX == len(self.matrixMDP) or nextY == len(self.matrixMDP[0]):
-			print 'You were supposed to have hit a wall before!' 
-			print 'There is something wrong with your MDP definition.'
+			print('You were supposed to have hit a wall before!')
+			print('There is something wrong with your MDP definition.')
 			sys.exit()
 
-		if self.matrixMDP[nextX][nextY] != -1:
+		if self.matrixMDP[int(nextX)][int(nextY)] != -1:
 			return nextX, nextY
 		else:
 			return self.currX, self.currY
@@ -162,17 +162,18 @@ class GridWorld:
 	def _getNextReward(self, currX, currY, action, nextX, nextY):
 		''' Returns the reward the agent will observe if in state (currX, currY)
 			and it takes action 'action' leading to the state (nextX, nextY).'''
-
+		nextX = int(nextX)
+		nextY = int(nextY)
 		# If a reward vector was not informed we get -1 everywhere until
 		# termination. After termination this function is not called anymore,
 		# thus we can just return 0 elsewhere in the code.
-		if self.rewardFunction == None and self.useNegativeRewards:
+		if self.rewardFunction is None and self.useNegativeRewards:
 			if self.matrixMDP[nextX][nextY] == -1 \
 				or self._getStateIndex(nextX, nextY) == self.numStates:
 				return 0
 			else:
 				return -1
-		elif self.rewardFunction == None and not self.useNegativeRewards:
+		elif self.rewardFunction is None and not self.useNegativeRewards:
 			if nextX == self.goalX and nextY == self.goalY:
 				return 1
 			else:
@@ -184,8 +185,8 @@ class GridWorld:
 		nextStateIdx = self._getStateIndex(nextX, nextY)
 
 		# Now I can finally compute the reward
-		reward = self.rewardFunction[nextStateIdx] \
-			- self.rewardFunction[currStateIdx]
+		reward = self.rewardFunction[int(nextStateIdx)] \
+			- self.rewardFunction[int(currStateIdx)]
 
 		return reward
 
@@ -239,12 +240,12 @@ class GridWorld:
 		'''I'll try for all states not in the borders (they have to be walls)
 		all 4 possible directions. If the next state is also available we add
 		such entry to the adjancency matrix, otherwise we don't.'''
-		for i in xrange(len(self.idxMatrix)):
-			for j in xrange(len(self.idxMatrix[i])):
+		for i in range(len(self.idxMatrix)):
+			for j in range(len(self.idxMatrix[i])):
 				self.idxMatrix[i][j] = i * self.numCols + j
 
-		for i in xrange(len(self.matrixMDP)):
-			for j in xrange(len(self.matrixMDP[i])):
+		for i in range(len(self.matrixMDP)):
+			for j in range(len(self.matrixMDP[i])):
 				if i != 0 and i != (self.numRows - 1) and j != 0 and j != (self.numCols - 1):
 					if self.matrixMDP[i + 1][j] != -1:
 						self.adjMatrix[self.idxMatrix[i][j]][self.idxMatrix[i + 1][j]] = 1
@@ -281,7 +282,7 @@ class GridWorld:
 		# Now I can ask what will happen next in this new state
 		nextStateIdx = None
 		reward = None
-		if self.rewardFunction == None and self.isTerminal():
+		if self.rewardFunction is None and self.isTerminal():
 			nextStateIdx = self.numStates
 			reward = 0
 		else:
@@ -317,7 +318,8 @@ class GridWorld:
 		tempY = self.currY
 
 		self.currX, self.currY = self.getStateXY(currState)
-
+		self.currX = int(self.currX)
+		self.currY = int(self.currY)
 		# Now I can ask what will happen next in this new state
 		accum_reward = 0
 		nextStateIdx = currState
@@ -337,7 +339,7 @@ class GridWorld:
 
 
 		while nextAction != aTerminate:
-			nextAction = o_pi[currState]
+			nextAction = o_pi[int(currState)]
 			self.currX, self.currY = self.getStateXY(currState)
 			if self.rewardFunction == None and self.isTerminal():
 				nextStateIdx = self.numStates
@@ -375,15 +377,15 @@ class GridWorld:
 
 		x, y = self.getStateXY(idx)
 
-		if self.adjMatrix == None:
+		if self.adjMatrix is None:
 			self._fillAdjacencyMatrix()
 
 		if idx >= self.numStates:
 			return False
-		elif self.matrixMDP[x][y] == -1:
+		elif self.matrixMDP[int(x)][int(y)] == -1:
 			return False
 		else:
-			self.goalX = x
-			self.goalY = y
+			self.goalX = int(x)
+			self.goalY = int(y)
 			self.reset()
 			return True
